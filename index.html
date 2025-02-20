@@ -3,34 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Угадай число</title>
+    <title>Поймай шарик!</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        #result { margin-top: 20px; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        #gameCanvas {
+            border: 2px solid #000;
+            background-color: #fff;
+        }
     </style>
 </head>
 <body>
-    <h1>Угадай число!</h1>
-    <p>Я загадал число от 1 до 100. Попробуй угадать!</p>
-    <input type="number" id="guess" placeholder="Введите число" />
-    <button onclick="checkGuess()">Угадать</button>
-    <div id="result"></div>
-
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
     <script>
-        const randomNumber = Math.floor(Math.random() * 100) + 1;
-        function checkGuess() {
-            const userGuess = parseInt(document.getElementById('guess').value);
-            const resultDiv = document.getElementById('result');
-            if (userGuess < 1 || userGuess > 100) {
-                resultDiv.innerHTML = "Пожалуйста, введите число от 1 до 100.";
-            } else if (userGuess === randomNumber) {
-                resultDiv.innerHTML = "Поздравляю! Вы угадали число!";
-            } else if (userGuess < randomNumber) {
-                resultDiv.innerHTML = "Слишком низко! Попробуйте снова.";
-            } else {
-                resultDiv.innerHTML = "Слишком высоко! Попробуйте снова.";
-            }
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let score = 0;
+        let ballRadius = 20;
+        let x = Math.random() * (canvas.width - ballRadius * 2) + ballRadius;
+        let y = 0;
+        let speed = 2;
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#0095DD';
+            ctx.fill();
+            ctx.closePath();
         }
+
+        function drawScore() {
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText('Очки: ' + score, 8, 20);
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            drawScore();
+
+            y += speed;
+
+            if (y + ballRadius > canvas.height) {
+                // Если шарик упал, сбросить его
+                x = Math.random() * (canvas.width - ballRadius * 2) + ballRadius;
+                y = 0;
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        canvas.addEventListener('click', function(event) {
+            const mousePos = getMousePos(canvas, event);
+            const dist = Math.sqrt((mousePos.x - x) ** 2 + (mousePos.y - y) ** 2);
+            if (dist < ballRadius) {
+                score++;
+                // Переместить шарик на новое место
+                x = Math.random() * (canvas.width - ballRadius * 2) + ballRadius;
+                y = 0;
+            }
+        });
+
+        function getMousePos(canvas, event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        update();
     </script>
 </body>
 </html>
